@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import
 import '../models/sentence.dart';
 import '../providers/typing_provider.dart';
 import '../providers/auth_provider.dart'; // To get user ID
@@ -65,9 +66,11 @@ class TypingScreenState extends State<TypingScreen> {
   }
 
   Future<void> _submitAttempt() async {
+    final localizations = AppLocalizations.of(context)!; // For easier access
+
     if (_sentence == null || _typedText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Cannot submit empty attempt.')),
+        SnackBar(content: Text(localizations.errorOccurred)), // Example, could be more specific
       );
       return;
     }
@@ -86,10 +89,8 @@ class TypingScreenState extends State<TypingScreen> {
 
     if (authProvider.user == null || authProvider.user!.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'User ID not available. Cannot submit. Please re-login.',
-          ),
+        SnackBar(
+          content: Text(localizations.errorOccurred), // Example generic error
         ),
       );
       setState(() => _isSubmitting = false);
@@ -117,7 +118,10 @@ class TypingScreenState extends State<TypingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Attempt Submitted! WPM: ${typingProvider.lastAttemptResult?.wpm ?? "N/A"}, Accuracy: ${typingProvider.lastAttemptResult?.accuracy?.toStringAsFixed(1) ?? "N/A"}%',
+            // Using string interpolation with localized fields
+            localizations.attemptSubmitted + '\n' +
+            localizations.wpm + ': ${typingProvider.lastAttemptResult?.wpm ?? "N/A"}\n' +
+            localizations.accuracy + ': ${typingProvider.lastAttemptResult?.accuracy?.toStringAsFixed(1) ?? "N/A"}%'
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 3),
@@ -131,7 +135,7 @@ class TypingScreenState extends State<TypingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Failed to submit: ${typingProvider.errorMessage ?? "Unknown error"}',
+            localizations.errorOccurred + (typingProvider.errorMessage != null ? ': ${typingProvider.errorMessage}' : '')
           ),
           backgroundColor: Theme.of(context).colorScheme.error,
         ),
@@ -159,19 +163,21 @@ class TypingScreenState extends State<TypingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+
     if (_sentence == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
-        body: const Center(
-          child: Text('No sentence loaded. Please go back and select one.'),
+        appBar: AppBar(title: Text(localizations.errorOccurred)),
+        body: Center(
+          child: Text(localizations.noSentences), // Or a more specific error
         ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Practice: ${_sentence!.language.toUpperCase()} (${_sentence!.difficulty})',
+        title: Text( // Localized title
+          '${localizations.typingScreenTitle}: ${_sentence!.language.toUpperCase()} (${_sentence!.difficulty})'
         ),
       ),
       body: SingleChildScrollView(
@@ -204,7 +210,7 @@ class TypingScreenState extends State<TypingScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      'Time: $_timeElapsedSeconds s',
+                      '${localizations.time}: $_timeElapsedSeconds s', // Localized
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     // Potentially add live WPM or accuracy here if desired
@@ -216,10 +222,10 @@ class TypingScreenState extends State<TypingScreen> {
             TextField(
               controller: _textController,
               autofocus: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Start typing here...',
-                hintText: 'The sentence will highlight as you type',
+              decoration: InputDecoration( // Localized
+                border: const OutlineInputBorder(),
+                labelText: localizations.startTyping, // Placeholder, could be more specific like "Type here"
+                hintText: 'The sentence will highlight as you type', // This hint can also be localized
               ),
               onChanged: (text) {
                 if (text.isNotEmpty && !_isTypingStarted) {
@@ -243,15 +249,15 @@ class TypingScreenState extends State<TypingScreen> {
                   ? _submitAttempt
                   : null,
               child: _isSubmitting
-                  ? const SizedBox(
+                  ? SizedBox(
                       height: 20,
                       width: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.0,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary), // Use onPrimary for ElevatedButton
                       ),
                     )
-                  : const Text('Submit Attempt'),
+                  : Text(localizations.submit), // Localized
             ),
           ],
         ),

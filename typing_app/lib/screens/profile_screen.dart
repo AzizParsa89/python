@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import
 import '../providers/auth_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -9,18 +10,15 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to AuthProvider to get user details
-    // final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    // Using Consumer for a more targeted rebuild if user info changes while screen is visible
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Profile')),
+      appBar: AppBar(title: Text(localizations.profileScreenTitle)), // Localized
       body: Consumer<AuthProvider>(
         builder: (context, authProvider, child) {
           if (authProvider.user == null) {
-            // This case should ideally not be reached if ProfileScreen is only accessible when authenticated
-            return const Center(
-              child: Text('Not logged in or user data not available.'),
+            return Center(
+              child: Text(localizations.noData), // Localized
             );
           }
           return Padding(
@@ -47,35 +45,28 @@ class ProfileScreen extends StatelessWidget {
                     _buildProfileDetailRow(
                       context,
                       Icons.account_circle,
-                      'Username',
+                      localizations.username, // Localized
                       authProvider.user!.username,
                     ),
                     const SizedBox(height: 16),
-                    // Email is optional in the User model and might not be fetched from backend
-                    // auth_provider.dart's User model currently only has username from prefs
                     _buildProfileDetailRow(
                       context,
                       Icons.email,
-                      'Email',
-                      authProvider.user!.email ?? 'Not available',
+                      localizations.email, // Localized
+                      authProvider.user!.email ?? localizations.noData, // Localized "Not available"
                     ),
                     const SizedBox(height: 30),
                     Center(
                       child: ElevatedButton.icon(
                         icon: const Icon(Icons.edit_outlined),
-                        label: const Text('Edit Profile (Placeholder)'),
+                        label: Text(localizations.profile), // Placeholder for "Edit Profile", using general profile string
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Edit profile functionality is not yet implemented.',
-                              ),
+                            SnackBar( // Using a generic error or info message
+                              content: Text(localizations.errorOccurred + ": Feature not implemented."),
                             ),
                           );
                         },
-                        // style: ElevatedButton.styleFrom(
-                        //   primary: Theme.of(context).colorScheme.secondary, // Using accent color
-                        // ),
                       ),
                     ),
                   ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import
 import '../providers/typing_provider.dart';
 import '../models/typing_attempt.dart'; // For TypingAttempt type
 
@@ -29,20 +30,18 @@ class LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // final typingProvider = Provider.of<TypingProvider>(context); // Not needed here due to Consumer
+    final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Global Leaderboard'),
+        title: Text(localizations.leaderboardScreenTitle), // Localized
         // TODO: Optionally add a filter for sentences if your API and UI support it
-        // For example, a DropdownButton to select a sentence
       ),
       body: Consumer<TypingProvider>(
-        // Use Consumer for more direct access and rebuild scoping
         builder: (ctx, provider, _) {
           Widget content;
           if (provider.isLoading && provider.leaderboard.isEmpty) {
-            content = const Center(child: CircularProgressIndicator());
+            content = Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [const CircularProgressIndicator(), const SizedBox(height:10), Text(localizations.loading)]));
           } else if (provider.errorMessage != null) {
             content = Center(
               child: Padding(
@@ -51,30 +50,26 @@ class LeaderboardScreenState extends State<LeaderboardScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Error: ${provider.errorMessage}',
+                      localizations.errorOccurred + (provider.errorMessage != null ? ': ${provider.errorMessage}' : ''), // Localized
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                      style: TextStyle(color: Theme.of(context).colorScheme.error),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.refresh),
-                      onPressed: () => provider.fetchLeaderboard(
-                        sentenceId: _selectedSentenceId,
-                      ),
-                      label: const Text('Retry'),
+                      onPressed: () => provider.fetchLeaderboard(sentenceId: _selectedSentenceId),
+                      label: Text(localizations.tryAgain), // Localized
                     ),
                   ],
                 ),
               ),
             );
           } else if (provider.leaderboard.isEmpty) {
-            content = const Center(
+            content = Center(
               child: Text(
-                'No scores yet. Be the first to set a record!',
+                localizations.noLeaderboardData, // Localized
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16, color: Colors.grey),
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
             );
           } else {
@@ -82,40 +77,23 @@ class LeaderboardScreenState extends State<LeaderboardScreen> {
               itemCount: provider.leaderboard.length,
               itemBuilder: (ctx, i) {
                 final attempt = provider.leaderboard[i];
-                // TODO: Fetch User details (username) based on attempt.userId for better display
-                // This would likely involve another provider or enhancing AuthProvider/User model
-                String username = attempt.userId.toString(); // Placeholder
-                // if (authProvider.usersCache[attempt.userId] != null) {
-                //   username = authProvider.usersCache[attempt.userId].username;
-                // }
+                String username = attempt.userId.toString(); // Placeholder for User ID
+                // TODO: Fetch actual username based on attempt.userId
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 8.0,
-                    vertical: 4.0,
-                  ),
+                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: i < 3
-                          ? Theme.of(context).colorScheme.secondary
-                          : Theme.of(context).primaryColor,
+                      backgroundColor: i < 3 ? Theme.of(context).colorScheme.secondary : Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
-                      child: Text(
-                        '${i + 1}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: Text('${localizations.rank} ${i + 1}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10)), // Localized Rank
                     ),
-                    title: Text(
-                      'User: $username (Sentence ID: ${attempt.sentenceId})',
-                    ), // Replace with actual username later
+                    title: Text('${localizations.userId}: $username (${localizations.sentenceId}: ${attempt.sentenceId})'), // Localized
                     subtitle: Text(
-                      'WPM: ${attempt.wpm ?? "N/A"} | Accuracy: ${attempt.accuracy?.toStringAsFixed(1) ?? "N/A"}% | Time: ${attempt.timeTakenSeconds.toStringAsFixed(1)}s',
+                      '${localizations.wpm}: ${attempt.wpm ?? "N/A"} | ${localizations.accuracy}: ${attempt.accuracy?.toStringAsFixed(1) ?? "N/A"}% | ${localizations.time}: ${attempt.timeTakenSeconds.toStringAsFixed(1)}s', // Localized
                       style: const TextStyle(fontSize: 12),
                     ),
-                    // isThreeLine: true, // If subtitle is too long
-                    trailing: Icon(
-                      Icons.emoji_events,
-                      color: i < 3 ? Colors.amber : Colors.grey[400],
+                    trailing: Icon(Icons.emoji_events, color: i < 3 ? Colors.amber : Colors.grey[400]),
                     ),
                   ),
                 );

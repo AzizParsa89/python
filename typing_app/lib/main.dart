@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:typing_app/providers/sentence_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import generated localizations
 import 'package:typing_app/providers/typing_provider.dart';
 
 import './providers/auth_provider.dart';
@@ -32,7 +34,21 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<AuthProvider>(
         builder: (ctx, auth, _) => MaterialApp(
-          title: 'Typing Competition',
+          title: 'Typing Competition', // This title will be replaced by AppLocalizations if used on a specific widget like AppBar
+
+          // Localization settings
+          localizationsDelegates: const [
+            AppLocalizations.delegate, // Add generated delegate
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('en', ''), // English, no country code
+            Locale('fa', ''), // Farsi, no country code
+          ],
+          locale: const Locale('fa', ''), // Set Farsi as the default locale
+
           theme: ThemeData(
             brightness: Brightness.light, // Or Brightness.dark
             primaryColor: Colors.indigo, // A deep blue-purple
@@ -149,6 +165,7 @@ class MyApp extends StatelessWidget {
               },
             ),
           ),
+          // The home property will be updated later to use AppLocalizations for its title if needed
           home: auth.isAuthenticated
               ? const HomeScreen()
               : FutureBuilder(
@@ -174,9 +191,18 @@ class MyApp extends StatelessWidget {
             TypingScreen.routeName: (ctx) => const TypingScreen(),
             LeaderboardScreen.routeName: (ctx) => const LeaderboardScreen(),
             ProfileScreen.routeName: (ctx) =>
-                const ProfileScreen(), // Add ProfileScreen route
+                const ProfileScreen(),
             // No need for SplashScreen.routeName if only used in home decision logic
           },
+          // Example of using locale in builder if needed for dynamic locale changes, though not strictly required by this step
+          // builder: (context, child) {
+          //   return MediaQuery(
+          //     data: MediaQuery.of(context).copyWith(
+          //       // You could override textScaleFactor here based on locale if desired
+          //     ),
+          //     child: child!,
+          //   );
+          // },
         ),
       ),
     );

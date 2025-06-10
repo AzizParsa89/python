@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import
 import '../providers/auth_provider.dart';
 import '../providers/sentence_provider.dart';
 import './typing_screen.dart';
@@ -40,10 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
     ); // listen: true to rebuild on sentence list changes
 
     Widget buildGreeting(BuildContext context) {
+      // Using AppLocalizations.of(context)! for greeting
+      String username = authProvider.user?.username ?? AppLocalizations.of(context)!.appTitle; // Fallback to appTitle or a generic 'User'
       return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
-          'Welcome, ${authProvider.user?.username ?? 'Typist'}!',
+          '${AppLocalizations.of(context)!.greeting}, $username!', // Localized greeting
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: Theme.of(context).primaryColorDark,
           ),
@@ -97,37 +100,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Widget buildSentenceSelector(BuildContext context) {
       if (sentenceProvider.isLoading && sentenceProvider.sentences.isEmpty) {
-        return const Center(child: CircularProgressIndicator());
+        return Center(child: Column(children: [CircularProgressIndicator(), const SizedBox(height: 10), Text(AppLocalizations.of(context)!.loading)]));
       }
       if (sentenceProvider.errorMessage != null) {
         return Center(
           child: Text(
-            'Error: ${sentenceProvider.errorMessage}',
+            // Using generic error message, specific error from provider could be used too
+            AppLocalizations.of(context)!.errorOccurred + (sentenceProvider.errorMessage != null ? ': ${sentenceProvider.errorMessage}' : ''),
             style: TextStyle(color: Theme.of(context).colorScheme.error),
+            textAlign: TextAlign.center,
           ),
         );
       }
       if (sentenceProvider.sentences.isEmpty) {
-        return const Center(child: Text('No sentences available.'));
+        return Center(child: Text(AppLocalizations.of(context)!.noSentences));
       }
 
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: DropdownButtonFormField<Sentence>(
           decoration: InputDecoration(
-            labelText: 'Select a Sentence',
+            labelText: AppLocalizations.of(context)!.selectSentence, // Localized
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),
             ),
           ),
           value: sentenceProvider.currentSentence,
           isExpanded: true,
-          hint: const Text("Choose a sentence to practice"),
+          hint: Text(AppLocalizations.of(context)!.selectSentence), // Localized
           items: sentenceProvider.sentences.map((Sentence sentence) {
             return DropdownMenuItem<Sentence>(
               value: sentence,
-              child: Text(
-                "${sentence.language.toUpperCase()} (${sentence.difficulty}): ${sentence.text.substring(0, (sentence.text.length > 40) ? 40 : sentence.text.length)}...",
+              child: Text( // Displaying sentence details - these are model values, not directly localizable unless the model itself has localized fields
+                "${AppLocalizations.of(context)!.sentenceLanguage}: ${sentence.language.toUpperCase()} (${AppLocalizations.of(context)!.sentenceDifficulty}: ${sentence.difficulty}) - ${sentence.text.substring(0, (sentence.text.length > 20) ? 20 : sentence.text.length)}...",
                 overflow: TextOverflow.ellipsis,
               ),
             );
@@ -143,21 +148,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Typing Champ',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ), // Using AppBarTheme
+        title: Text(AppLocalizations.of(context)!.appTitle, style: const TextStyle(fontWeight: FontWeight.bold)), // Localized
         actions: <Widget>[
           IconButton(
             icon: const Icon(Icons.person_outline),
-            tooltip: 'Profile',
+            tooltip: AppLocalizations.of(context)!.profile, // Localized
             onPressed: () {
               Navigator.of(context).pushNamed(ProfileScreen.routeName);
             },
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Logout',
+            tooltip: AppLocalizations.of(context)!.logout, // Localized
             onPressed: () {
               authProvider.logout();
             },
@@ -182,10 +184,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 buildActionCard(
                   context,
                   icon: Icons.keyboard,
-                  title: 'Start Typing',
+                  title: AppLocalizations.of(context)!.startTyping, // Localized
                   subtitle: sentenceProvider.currentSentence != null
                       ? "${sentenceProvider.currentSentence!.language.toUpperCase()} (${sentenceProvider.currentSentence!.difficulty}): ${sentenceProvider.currentSentence!.text.substring(0, (sentenceProvider.currentSentence!.text.length > 25) ? 25 : sentenceProvider.currentSentence!.text.length)}..."
-                      : 'Select a sentence above to start practicing.',
+                      : AppLocalizations.of(context)!.selectSentence, // Localized
                   onTap: () {
                     if (sentenceProvider.currentSentence != null) {
                       Navigator.of(context).pushNamed(
@@ -194,8 +196,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please select a sentence first!'),
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!.selectSentence), // Localized
                         ),
                       );
                     }
@@ -205,8 +207,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 buildActionCard(
                   context,
                   icon: Icons.leaderboard,
-                  title: 'View Leaderboard',
-                  subtitle: 'See top scores and rankings.',
+                  title: AppLocalizations.of(context)!.viewLeaderboard, // Localized
+                  subtitle: 'See top scores and rankings.', // This could also be localized
                   onTap: () {
                     Navigator.of(
                       context,

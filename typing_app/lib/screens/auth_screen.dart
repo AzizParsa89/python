@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import
 
 enum AuthMode { signup, login }
 
@@ -30,7 +31,7 @@ class AuthScreenState extends State<AuthScreen> {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: Text(message), // This message comes from the provider, potentially already localized or a generic error
         backgroundColor: Theme.of(
           context,
         ).colorScheme.error, // Using error color from theme
@@ -64,14 +65,14 @@ class AuthScreenState extends State<AuthScreen> {
         );
       }
       if (!success) {
+        // Use a generic error message from AppLocalizations if provider message is null
         _showErrorSnackbar(
-          authProvider.errorMessage ?? 'Authentication failed.',
+          authProvider.errorMessage ?? AppLocalizations.of(context)!.errorOccurred,
         );
       }
       // No need to navigate here, main.dart will handle it based on auth state
     } catch (error) {
-      var errorMessage = 'Could not authenticate you. Please try again later.';
-      _showErrorSnackbar(errorMessage);
+      _showErrorSnackbar(AppLocalizations.of(context)!.errorOccurred); // Generic error
     }
 
     if (mounted) {
@@ -118,21 +119,23 @@ class AuthScreenState extends State<AuthScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      'Typing Champ',
+                      AppLocalizations.of(context)!.appTitle, // Localized
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 30, // Adjusted size
-                        color: Theme.of(context).primaryColorDark,
-                      ),
+                            fontSize: 30,
+                            color: Theme.of(context).primaryColorDark,
+                          ),
                     ),
                     const SizedBox(height: 25),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration( // Localized
+                        labelText: AppLocalizations.of(context)!.username,
+                        hintText: AppLocalizations.of(context)!.usernameHint,
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Username cannot be empty!';
+                          // This validation message could also be localized if needed
+                          return '${AppLocalizations.of(context)!.username} cannot be empty!';
                         }
                         return null;
                       },
@@ -143,16 +146,15 @@ class AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 12),
                     if (_authMode == AuthMode.signup)
                       TextFormField(
-                        decoration: const InputDecoration(
-                          labelText: 'E-Mail',
-                          prefixIcon: Icon(Icons.email_outlined),
+                        decoration: InputDecoration( // Localized
+                          labelText: AppLocalizations.of(context)!.email,
+                          hintText: AppLocalizations.of(context)!.emailHint,
+                          prefixIcon: const Icon(Icons.email_outlined),
                         ),
                         keyboardType: TextInputType.emailAddress,
                         validator: (value) {
-                          if (value == null ||
-                              value.isEmpty ||
-                              !value.contains('@')) {
-                            return 'Invalid email address!';
+                          if (value == null || value.isEmpty || !value.contains('@')) {
+                            return 'Invalid email address!'; // Could be localized
                           }
                           return null;
                         },
@@ -160,21 +162,18 @@ class AuthScreenState extends State<AuthScreen> {
                           _authData['email'] = value!;
                         },
                       ),
-                    if (_authMode == AuthMode.signup)
-                      const SizedBox(height: 12),
+                    if (_authMode == AuthMode.signup) const SizedBox(height: 12),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: Icon(Icons.lock_outline),
+                      decoration: InputDecoration( // Localized
+                        labelText: AppLocalizations.of(context)!.password,
+                        hintText: AppLocalizations.of(context)!.passwordHint,
+                        prefixIcon: const Icon(Icons.lock_outline),
                       ),
                       obscureText: true,
                       controller: _passwordController,
                       validator: (value) {
-                        if (value == null ||
-                            value.isEmpty ||
-                            value.length < 6) {
-                          // Password length
-                          return 'Password must be at least 6 characters!';
+                        if (value == null || value.isEmpty || value.length < 6) {
+                          return 'Password must be at least 6 characters!'; // Could be localized
                         }
                         return null;
                       },
@@ -186,15 +185,16 @@ class AuthScreenState extends State<AuthScreen> {
                     if (_authMode == AuthMode.signup)
                       TextFormField(
                         enabled: _authMode == AuthMode.signup,
-                        decoration: const InputDecoration(
-                          labelText: 'Confirm Password',
-                          prefixIcon: Icon(Icons.lock_outline),
+                        decoration: InputDecoration( // Localized
+                          labelText: AppLocalizations.of(context)!.confirmPassword,
+                          hintText: AppLocalizations.of(context)!.confirmPasswordHint,
+                          prefixIcon: const Icon(Icons.lock_outline),
                         ),
                         obscureText: true,
                         validator: _authMode == AuthMode.signup
                             ? (value) {
                                 if (value != _passwordController.text) {
-                                  return 'Passwords do not match!';
+                                  return 'Passwords do not match!'; // Could be localized
                                 }
                                 return null;
                               }
@@ -202,24 +202,24 @@ class AuthScreenState extends State<AuthScreen> {
                       ),
                     const SizedBox(height: 30),
                     if (_isLoading)
-                      CircularProgressIndicator(
-                        color: Theme.of(context).colorScheme.secondary,
-                      )
+                      CircularProgressIndicator(color: Theme.of(context).colorScheme.secondary)
                     else
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           onPressed: _submit,
-                          child: Text(
-                            _authMode == AuthMode.login ? 'LOGIN' : 'SIGN UP',
+                          child: Text( // Localized
+                            _authMode == AuthMode.login ? AppLocalizations.of(context)!.login : AppLocalizations.of(context)!.register,
                           ),
                         ),
                       ),
                     const SizedBox(height: 10),
                     TextButton(
                       onPressed: _switchAuthMode,
-                      child: Text(
-                        '${_authMode == AuthMode.login ? 'Create an account' : 'Have an account? Login'}',
+                      child: Text( // Localized
+                        _authMode == AuthMode.login
+                            ? AppLocalizations.of(context)!.dontHaveAnAccount
+                            : AppLocalizations.of(context)!.alreadyHaveAnAccount,
                       ),
                     ),
                   ],
